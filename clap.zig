@@ -645,20 +645,22 @@ pub const ParseOptions = struct {
 
 /// Same as `parseEx` but uses the `args.OsIterator` by default.
 pub fn parse(
+    init: std.process.Init,
     comptime Id: type,
     comptime params: []const Param(Id),
     comptime value_parsers: anytype,
     opt: ParseOptions,
 ) !Result(Id, params, value_parsers) {
-    var arena = std.heap.ArenaAllocator.init(opt.allocator);
-    errdefer arena.deinit();
+    const arena = init.arena;
+    const allocator = arena.allocator();
 
-    var iter = try std.process.ArgIterator.initWithAllocator(arena.allocator());
+    const init_args = init.minimal.args;
+    var iter = try std.process.Args.iterateAllocator(init_args, allocator);
     const exe_arg = iter.next();
 
     const result = try parseEx(Id, params, value_parsers, &iter, .{
         // Let's reuse the arena from the `ArgIterator` since we already have it.
-        .allocator = arena.allocator(),
+        .allocator = allocator,
         .diagnostic = opt.diagnostic,
         .assignment_separators = opt.assignment_separators,
         .terminating_positional = opt.terminating_positional,
@@ -668,7 +670,7 @@ pub fn parse(
         .args = result.args,
         .positionals = result.positionals,
         .exe_arg = exe_arg,
-        .arena = arena,
+        .arena = arena.*,
     };
 }
 
