@@ -1232,7 +1232,7 @@ test "overflow-safe" {
     );
 
     var iter = args.SliceIterator{
-        .args = &(.{"-" ++ ("a" ** 300)}),
+        .args = &(.{"-" ++ ("a" * *300)}),
     };
 
     // This just needs to not crash
