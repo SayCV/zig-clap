@@ -140,10 +140,13 @@ pub fn parseParamsIntoSlice(slice: []Param(Help), str: []const u8) ![]Param(Help
 /// is to small.
 pub fn parseParamsIntoSliceEx(slice: []Param(Help), str: []const u8, end: *usize) ![]Param(Help) {
     var null_allocator = std.heap.FixedBufferAllocator.init("");
-    var list = std.ArrayList(Param(Help)){
+    var list = if (@hasField(std.ArrayList(Param(Help)), "pointer_stability")) std.ArrayList(Param(Help)){
         .items = slice[0..0],
         .capacity = slice.len,
         .pointer_stability = .{},
+    } else std.ArrayList(Param(Help)){
+        .items = slice[0..0],
+        .capacity = slice.len,
     };
 
     try parseParamsIntoArrayListEx(null_allocator.allocator(), &list, str, end);
